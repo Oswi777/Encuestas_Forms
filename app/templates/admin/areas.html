@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% set title='Áreas' %}
+{% block content %}
+<div class="card">
+  <div class="row between">
+    <h1>Áreas</h1>
+    <a class="btn ghost" href="{{ url_for('admin.dashboard') }}">Volver</a>
+  </div>
+  <div class="grid2">
+    <form class="form" method="post" action="{{ url_for('admin.areas_create') }}">
+      <h3>Agregar manual</h3>
+      <label>Nombre</label>
+      <input class="input" name="name" required>
+      <button class="btn primary" type="submit">Crear</button>
+    </form>
+    <form class="form" method="post" action="{{ url_for('admin.areas_import') }}" enctype="multipart/form-data">
+      <h3>Importar Excel</h3>
+      <p class="muted">Se lee la primer hoja. Columna A o encabezado Area/Nombre.</p>
+      <input class="input" type="file" name="file" accept=".xlsx,.xls" required>
+      <button class="btn primary" type="submit">Importar</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Listado</h2>
+  <table class="table">
+    <thead>
+      <tr><th>Área</th><th>Estado</th><th>Acción</th></tr>
+    </thead>
+    <tbody>
+      {% for a in areas %}
+      <tr>
+        <td>{{ a.name }}</td>
+        <td>{{ 'Activa' if a.is_active else 'Inactiva' }}</td>
+        <td>
+          <form method="post" action="{{ url_for('admin.areas_toggle', area_id=a.id) }}">
+            <button class="btn small" type="submit">{{ 'Desactivar' if a.is_active else 'Activar' }}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

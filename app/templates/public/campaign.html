@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% set title=campaign.name %}
+{% block content %}
+<div class="kiosk">
+  <div class="kiosk-header">
+    <div>
+      <h1 id="campaignTitle">{{ campaign.name }}</h1>
+      <div class="muted" id="campaignDesc">{{ campaign.snapshot_json.description if campaign.snapshot_json else '' }}</div>
+    </div>
+    <div class="kiosk-actions">
+      <a class="btn ghost" href="{{ url_for('public.menu') }}">Menú</a>
+      <button class="btn ghost" id="langToggle" type="button">ES/EN</button>
+    </div>
+  </div>
+
+  <div class="kiosk-body">
+    <div id="offlineBanner" class="offline" hidden>Sin conexión. Tu respuesta se guardará y se enviará automáticamente.</div>
+
+    <div id="surveyRoot" class="survey"></div>
+
+    <div class="kiosk-footer">
+      <div class="muted" id="progressText"></div>
+      <div class="row">
+        <button class="btn" id="btnBack" type="button">Atrás</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.__CAMPAIGN__ = { token: "{{ campaign.token }}" };
+</script>
+<script defer src="{{ url_for('static', filename='js/survey_app.js') }}"></script>
+{% endblock %}

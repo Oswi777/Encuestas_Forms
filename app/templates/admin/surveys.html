@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% set title='Encuestas' %}
+{% block content %}
+<div class="card">
+  <div class="row between">
+    <h1>Encuestas (Plantillas)</h1>
+    <div class="row">
+      <a class="btn primary" href="{{ url_for('admin.surveys_new') }}">Nueva</a>
+      <form method="post" action="{{ url_for('admin.surveys_seed') }}" style="display:inline">
+        <button class="btn" type="submit">Crear plantillas base</button>
+      </form>
+      <a class="btn ghost" href="{{ url_for('admin.dashboard') }}">Volver</a>
+    </div>
+  </div>
+  <table class="table">
+    <thead><tr><th>Título</th><th>Categoría</th><th>Actualizada</th><th>Acciones</th></tr></thead>
+    <tbody>
+      {% for s in surveys %}
+      <tr>
+        <td>{{ s.title }}</td>
+        <td>{{ s.category }}</td>
+        <td>{{ s.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>
+          <a class="btn small" href="{{ url_for('admin.surveys_edit', survey_id=s.id) }}">Editar</a>
+          <form method="post" action="{{ url_for('admin.surveys_delete', survey_id=s.id) }}" style="display:inline" onsubmit="return confirm('¿Eliminar encuesta?')">
+            <button class="btn small danger" type="submit">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4">No hay encuestas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

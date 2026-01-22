@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% set title='Login' %}
+{% block content %}
+<div class="card narrow">
+  <h1>Acceso Administrador</h1>
+  <form method="post" action="{{ url_for('auth.login_post') }}" class="form">
+    <label>Usuario</label>
+    <input class="input" name="username" required>
+    <label>Contraseña</label>
+    <input class="input" name="password" type="password" required>
+    <button class="btn primary" type="submit">Entrar</button>
+  </form>
+</div>
+{% endblock %}

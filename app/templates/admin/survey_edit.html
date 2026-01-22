@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% if survey %}{% set title='Editar encuesta' %}{% else %}{% set title='Nueva encuesta' %}{% endif %}
+{% block content %}
+<div class="card">
+  <div class="row between">
+    <h1>{{ 'Editar' if survey else 'Nueva' }} encuesta</h1>
+    <a class="btn ghost" href="{{ url_for('admin.surveys_list') }}">Volver</a>
+  </div>
+  <form class="form" method="post" action="{{ url_for('admin.surveys_save') }}">
+    {% if survey %}<input type="hidden" name="survey_id" value="{{ survey.id }}">{% endif %}
+    <label>Título</label>
+    <input class="input" name="title" value="{{ survey.title if survey else '' }}" required>
+    <label>Categoría</label>
+    <select class="input" name="category" required>
+      {% set cat = (survey.category if survey else 'GENERAL') %}
+      <option value="COMEDOR" {{ 'selected' if cat=='COMEDOR' else '' }}>Comedor</option>
+      <option value="BANOS" {{ 'selected' if cat=='BANOS' else '' }}>Baños</option>
+      <option value="TRANSPORTE" {{ 'selected' if cat=='TRANSPORTE' else '' }}>Transporte</option>
+      <option value="GENERAL" {{ 'selected' if cat=='GENERAL' else '' }}>General</option>
+    </select>
+    <label>Descripción</label>
+    <textarea class="input" name="description" rows="3">{{ survey.description if survey else '' }}</textarea>
+
+    <label>Preguntas (estilo Forms)</label>
+    <p class="muted">Agrega preguntas como si estuvieras creando un formulario. La lógica es opcional y se configura con reglas simples.</p>
+
+    <div class="forms-builder">
+      <div id="qList" class="q-list"></div>
+
+      <div class="row" style="margin-top:12px;gap:10px;flex-wrap:wrap">
+        <button class="btn primary" type="button" data-add="likert">+ Agregar Likert (1–5)</button>
+        <button class="btn" type="button" data-add="single">+ Agregar Opción única</button>
+        <button class="btn" type="button" data-add="text">+ Agregar Texto</button>
+      </div>
+    </div>
+
+    <!-- Hidden: el usuario NO edita JSON. Se genera automáticamente al guardar.
+         Nota: NO usar required; la validación HTML bloquearía el submit antes de que el JS lo llene. -->
+    <textarea id="schemaJson" class="code" name="schema_json" rows="2" style="display:none"></textarea>
+
+    <div class="row">
+      <button class="btn primary" type="submit">Guardar</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  window.__SURVEY_SCHEMA__ = {{ (survey.schema_json|tojson) if survey else 'null' }};
+</script>
+<script defer src="{{ url_for('static', filename='js/survey_builder.js') }}"></script>
+{% endblock %}

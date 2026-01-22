@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% set title='Menú' %}
+{% block content %}
+<div class="card">
+  <h1>Selecciona una encuesta</h1>
+  <p class="muted">Sólo se muestran listas/campañas activas.</p>
+  <div class="grid2">
+    {% for c in campaigns %}
+      <a class="card link-card" href="{{ url_for('public.campaign', token=c.token) }}">
+        <div class="row between">
+          <div>
+            <h2>{{ c.name }}</h2>
+            <div class="muted">{{ c.snapshot_json.title if c.snapshot_json else '' }}</div>
+          </div>
+          <div class="pill">Abrir</div>
+          
+        </div>
+      </a>
+    {% else %}
+      <div class="muted">No hay campañas activas.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  // Auto-refresh every 60s for kiosk scenarios so newly opened campaigns appear without manual reload.
+  const AUTO_REFRESH_MS = 60000;
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('norefresh') !== '1'){
+    setTimeout(() => window.location.reload(), AUTO_REFRESH_MS);
+  }
+</script>
+{% endblock %}

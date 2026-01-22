@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width:420px;margin:0 auto;">
+  <h1>Acceso administrador</h1>
+  <form method="post" action="{{ url_for('auth.login_post') }}" class="form">
+    <input type="hidden" name="next" value="{{ next or '/admin' }}" />
+    <label>Usuario</label>
+    <input class="input" name="username" autocomplete="username" required />
+    <label>Contraseña</label>
+    <input class="input" name="password" type="password" autocomplete="current-password" required />
+    <div class="row">
+      <button class="btn" type="submit">Entrar</button>
+      <a class="btn ghost" href="{{ url_for('public.menu') }}">Volver</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

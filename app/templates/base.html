@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ config.APP_TITLE }}{% if title %} — {{ title }}{% endif %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script defer src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+    <div class="logos left" aria-label="BorgWarner">
+      <img class="logo bw-tech" src="{{ url_for('static', filename='img/BorgWarner_Logo_Technology_Blue.svg') }}" alt="BorgWarner">
+      <img class="logo bw-dark" src="{{ url_for('static', filename='img/BorgWarner_Logo_Dark_Blue.svg') }}" alt="BorgWarner">
+    </div>
+
+    <div class="brand">
+      <div class="brand-title">{{ config.APP_TITLE }}</div>
+      <div class="brand-sub">Sistema profesional de encuestas</div>
+    </div>
+
+    <div class="logos right" aria-label="GPTW">
+      <img class="logo" src="{{ url_for('static', filename='img/GPTW_Logo.svg') }}" alt="Great Place To Work">
+      <div class="top-actions">
+        <button class="btn ghost" id="themeToggle" type="button">Modo</button>
+        {% if current_user.is_authenticated %}
+          <a class="btn ghost" href="{{ url_for('auth.logout_to_menu') }}">Menú</a>
+        {% else %}
+          <a class="btn ghost" href="{{ url_for('public.menu') }}">Menú</a>
+        {% endif %}
+        {% if current_user.is_authenticated %}
+          <a class="btn ghost" href="{{ url_for('admin.dashboard') }}">Admin</a>
+          <a class="btn ghost" href="{{ url_for('auth.logout') }}">Salir</a>
+        {% else %}
+          <a class="btn ghost" href="{{ url_for('auth.login') }}">Admin</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alerts">
+          {% for cat, msg in messages %}
+            <div class="alert {{ cat }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <span>BW — Saltillo</span>
+  </footer>
+</body>
+</html>

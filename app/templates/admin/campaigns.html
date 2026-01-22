@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% set title='Campañas' %}
+{% block content %}
+<div class="card">
+  <div class="row between">
+    <h1>Listas / Campañas</h1>
+    <div class="row">
+      <a class="btn ghost" href="{{ url_for('admin.dashboard') }}">Volver</a>
+    </div>
+  </div>
+  <form class="form" method="post" action="{{ url_for('admin.campaigns_create') }}">
+    <h3>Nueva campaña (snapshot)</h3>
+    <label>Encuesta base</label>
+    <select class="input" name="survey_id" required>
+      <option value="">-- Selecciona --</option>
+      {% for s in surveys %}
+        <option value="{{ s.id }}">{{ s.title }}</option>
+      {% endfor %}
+    </select>
+    <label>Nombre de lista/campaña</label>
+    <input class="input" name="name" placeholder="Comedor — Enero 2026" required>
+    <label>Vigencia inicio (opcional)</label>
+    <input class="input" type="datetime-local" name="start_at">
+    <label>Vigencia fin (opcional)</label>
+    <input class="input" type="datetime-local" name="end_at">
+    <label class="row">
+      <input type="checkbox" name="require_area" checked>
+      <span>Requerir Área</span>
+    </label>
+    <label class="row">
+      <input type="checkbox" name="require_shift" checked>
+      <span>Requerir Turno</span>
+    </label>
+    <button class="btn primary" type="submit">Crear</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Campañas</h2>
+
+  <form class="row wrap" method="get" action="{{ url_for('admin.campaigns_list') }}" style="gap:10px; align-items:flex-end">
+    <div style="min-width:240px">
+      <label>Buscar</label>
+      <input class="input" name="q" placeholder="Nombre o token" value="{{ filters.q }}">
+    </div>
+    <div style="min-width:200px">
+      <label>Estado</label>
+      <select class="input" name="status">
+        <option value="all" {{ 'selected' if filters.status=='all' else '' }}>Todas</option>
+        <option value="active" {{ 'selected' if filters.status=='active' else '' }}>Activas</option>
+        <option value="inactive" {{ 'selected' if filters.status=='inactive' else '' }}>Inactivas</option>
+      </select>
+    </div>
+    <div style="min-width:220px">
+      <label>Categoría</label>
+      <select class="input" name="category">
+        <option value="all" {{ 'selected' if filters.category=='ALL' else '' }}>Todas</option>
+        {% for cat in categories %}
+          <option value="{{ cat }}" {{ 'selected' if filters.category==cat else '' }}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn primary" type="submit">Aplicar</button>
+    <a class="btn ghost" href="{{ url_for('admin.campaigns_list') }}">Limpiar</a>
+  </form>
+
+  <div class="muted" style="margin-top:10px">Mostrando {{ campaigns|length }} de {{ pagination.total }} campañas · Página {{ pagination.page }} de {{ pagination.pages }}</div>
+
+  <table class="table">
+    <thead><tr><th>Nombre</th><th>Token</th><th>Activa</th><th>Link</th><th>QR</th><th>Acciones</th></tr></thead>
+    <tbody>
+      {% for c in campaigns %}
+      <tr>
+        <td>{{ c.name }}</td>
+        <td><code>{{ c.token }}</code></td>
+        <td>{{ 'Sí' if c.is_active else 'No' }}</td>
+        <td><a href="{{ url_for('public.campaign', token=c.token) }}" target="_blank">Abrir</a></td>
+        <td><a href="{{ url_for('api.qr_png', token=c.token) }}" target="_blank">PNG</a></td>
+        <td>
+          <form method="post" action="{{ url_for('admin.campaigns_toggle', campaign_id=c.id) }}" style="display:inline">
+            <button class="btn small" type="submit">{{ 'Desactivar' if c.is_active else 'Activar' }}</button>
+          </form>
+          <a class="btn small" href="{{ url_for('admin.campaigns_edit', campaign_id=c.id) }}">Editar</a>
+          <a class="btn small" href="{{ url_for('admin.campaigns_report', campaign_id=c.id) }}">Reporte</a>
+          <form method="post" action="{{ url_for('admin.campaigns_delete', campaign_id=c.id) }}" style="display:inline" onsubmit="return confirm('¿Eliminar campaña?')">
+            <button class="btn small danger" type="submit">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6">No hay campañas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="pager" style="margin-top:12px">
+    <div class="muted">Página {{ pagination.page }} de {{ pagination.pages }}</div>
+    {% set prev_page = pagination.page - 1 %}
+    {% set next_page = pagination.page + 1 %}
+    <a class="btn small" href="{{ url_for('admin.campaigns_list', page=prev_page, q=filters.q, status=filters.status, category=filters.category) }}" {% if pagination.page<=1 %}style="pointer-events:none;opacity:.5"{% endif %}>Anterior</a>
+    <a class="btn small" href="{{ url_for('admin.campaigns_list', page=next_page, q=filters.q, status=filters.status, category=filters.category) }}" {% if pagination.page>=pagination.pages %}style="pointer-events:none;opacity:.5"{% endif %}>Siguiente</a>
+  </div>
+
+</div>
+{% endblock %}

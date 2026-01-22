@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% set title='Reporte' %}
+{% block content %}
+<div class="card">
+  <div class="row between">
+    <div>
+      <h1>Reporte — {{ campaign.name }}</h1>
+      <p class="muted">Exporta CSV/PDF o revisa las gráficas.</p>
+    </div>
+    <a class="btn ghost" href="{{ url_for('admin.campaigns_list') }}">Volver</a>
+  </div>
+  <div class="row wrap">
+    <a class="btn primary" href="{{ url_for('admin.campaigns_export_csv', campaign_id=campaign.id) }}">Exportar CSV (Raw)</a>
+    <a class="btn primary" href="{{ url_for('admin.campaigns_export_pdf', campaign_id=campaign.id) }}">Exportar PDF (Procesado)</a>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Gráficas</h2>
+  <p class="muted" id="reportSubtitle">Las gráficas se generan desde la analítica procesada del backend.</p>
+
+  <div id="kpiRow" class="kpis"></div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>Actividad</h3>
+    <canvas id="chartByDay" height="120"></canvas>
+  </div>
+
+  <div class="grid2" style="margin-top:14px">
+    <div class="card">
+      <h3>Distribución principal</h3>
+      <canvas id="chartMain" height="140"></canvas>
+    </div>
+    <div class="card">
+      <h3>Turnos</h3>
+      <canvas id="chartByShift" height="140"></canvas>
+    </div>
+  </div>
+
+  <div id="reasonsRow" class="grid2" style="margin-top:14px" hidden>
+    <div class="card">
+      <h3>Razones positivas (Top)</h3>
+      <canvas id="chartReasonsPos" height="160"></canvas>
+    </div>
+    <div class="card">
+      <h3>Razones negativas (Top)</h3>
+      <canvas id="chartReasonsNeg" height="160"></canvas>
+    </div>
+  </div>
+
+  <div id="generalMatrix" class="card" style="margin-top:14px" hidden>
+    <h3>Resultados por afirmación (Likert)</h3>
+    <p class="muted">Barra apilada por pregunta. Valores en porcentaje.</p>
+    <canvas id="chartGeneralStacked" height="240"></canvas>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>Detalle por pregunta</h3>
+    <div id="questionCharts" class="grid2"></div>
+  </div>
+
+  <div class="grid2" style="margin-top:14px">
+    <div class="card">
+      <h3>Últimas respuestas</h3>
+      <div class="table-wrap">
+        <table class="table" id="tblResponses">
+          <thead><tr><th>Fecha</th><th>Área</th><th>Turno</th><th>Fuente</th><th>Idioma</th><th>ID</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="pager" id="pagerResponses"></div>
+    </div>
+
+    <div class="card">
+      <h3>Seguimiento (opt-in)</h3>
+      <div class="table-wrap">
+        <table class="table" id="tblFollowups">
+          <thead><tr><th>Fecha</th><th>Nombre</th><th>No. Empleado</th><th>Área</th><th>Turno</th><th>Resp.</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="pager" id="pagerFollowups"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>Comentarios (texto)</h3>
+    <div class="table-wrap">
+      <table class="table" id="tblComments">
+        <thead><tr><th>Fecha</th><th>Pregunta</th><th>Comentario</th><th>Área</th><th>Turno</th><th>Resp.</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="pager" id="pagerComments"></div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  window.__REPORT__ = {campaignId: {{ campaign.id }} };
+</script>
+<script defer src="{{ url_for('static', filename='js/admin_report.js') }}"></script>
+{% endblock %}

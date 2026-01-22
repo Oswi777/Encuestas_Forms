@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% set title='Editar campaña' %}
+{% block content %}
+<div class="card">
+  <div class="row between">
+    <h1>Editar campaña</h1>
+    <div class="row">
+      <a class="btn ghost" href="{{ url_for('admin.campaigns_list') }}">Volver</a>
+    </div>
+  </div>
+
+  <form class="form" method="post" action="{{ url_for('admin.campaigns_edit_post', campaign_id=c.id) }}">
+    <label>Nombre</label>
+    <input class="input" name="name" value="{{ c.name }}" required>
+
+    <label>Encuesta base</label>
+    {% set locked = (c.responses|length if c.responses is defined else 0) > 0 %}
+    <select class="input" name="survey_id" {% if locked %}disabled{% endif %}>
+      {% for s in surveys %}
+        <option value="{{ s.id }}" {% if s.id==c.survey_id %}selected{% endif %}>{{ s.title }}</option>
+      {% endfor %}
+    </select>
+    {% if locked %}
+      <div class="hint">No se permite cambiar la encuesta base porque la campaña ya tiene respuestas.</div>
+    {% endif %}
+
+    <div class="grid2">
+      <div>
+        <label>Inicio (opcional)</label>
+        <input class="input" type="datetime-local" name="start_at" value="{{ c.start_at|mx_dt_input }}">
+      </div>
+      <div>
+        <label>Fin (opcional)</label>
+        <input class="input" type="datetime-local" name="end_at" value="{{ c.end_at|mx_dt_input }}">
+      </div>
+    </div>
+
+    <label class="row">
+      <input type="checkbox" name="require_area" {% if c.require_area %}checked{% endif %}>
+      <span>Requerir Área</span>
+    </label>
+    <label class="row">
+      <input type="checkbox" name="require_shift" {% if c.require_shift %}checked{% endif %}>
+      <span>Requerir Turno</span>
+    </label>
+
+    <div class="row">
+      <button class="btn primary" type="submit">Guardar cambios</button>
+      <a class="btn ghost" href="{{ url_for('public.campaign', token=c.token) }}" target="_blank">Abrir encuesta</a>
+      <a class="btn ghost" href="{{ url_for('api.qr_png', token=c.token) }}" target="_blank">Ver QR</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

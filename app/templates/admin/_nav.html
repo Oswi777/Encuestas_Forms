@@ -1,0 +1,9 @@
+<nav class="subnav">
+  <a class="chip" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+  <a class="chip" href="{{ url_for('admin.surveys') }}">Encuestas</a>
+  <a class="chip" href="{{ url_for('admin.campaigns') }}">Campañas</a>
+  <a class="chip" href="{{ url_for('admin.areas') }}">Áreas</a>
+  <span class="spacer"></span>
+  <button class="chip ghost" type="button" onclick="history.back()">Retroceder</button>
+  <a class="chip danger" href="{{ url_for('admin.to_menu') }}">Ir al menú (cerrar sesión)</a>
+</nav>

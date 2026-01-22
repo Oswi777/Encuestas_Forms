@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% set title='Admin' %}
+{% block content %}
+<div class="grid2">
+  <div class="card">
+    <h2>Acciones</h2>
+    <div class="stack">
+      <a class="btn primary" href="{{ url_for('admin.areas_list') }}">Catálogo de Áreas</a>
+      <a class="btn primary" href="{{ url_for('admin.surveys_list') }}">Encuestas (Plantillas)</a>
+      <a class="btn primary" href="{{ url_for('admin.campaigns_list') }}">Listas/Campañas</a>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Reciente</h2>
+    <h3>Encuestas</h3>
+    <ul class="list">
+      {% for s in surveys %}
+        <li><strong>{{ s.title }}</strong> — <a href="{{ url_for('admin.surveys_edit', survey_id=s.id) }}">Editar</a></li>
+      {% else %}
+        <li>Sin encuestas aún.</li>
+      {% endfor %}
+    </ul>
+    <h3>Campañas</h3>
+    <ul class="list">
+      {% for c in campaigns %}
+        <li><strong>{{ c.name }}</strong> — <a href="{{ url_for('admin.campaigns_report', campaign_id=c.id) }}">Reporte</a></li>
+      {% else %}
+        <li>Sin campañas aún.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
