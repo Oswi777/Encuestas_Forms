@@ -7,6 +7,8 @@ services:
     preDeployCommand: python -m flask --app wsgi db upgrade
     autoDeploy: true
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
       - key: FLASK_ENV
         value: production
       - key: TIME_ZONE
