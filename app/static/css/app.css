@@ -37,7 +37,6 @@ html[data-theme="light"]{
 
 *{box-sizing:border-box}
 
-/* Background refined (dark) */
 body{
   margin:0;
   font-family:var(--font);
@@ -79,10 +78,12 @@ html[data-theme="light"] .topbar{
 
 .brand-title{font-weight:900;letter-spacing:-.01em}
 .brand-sub{font-size:12px;color:var(--muted)}
+
 .row{display:flex;gap:10px;align-items:center}
 .row.between{justify-content:space-between}
 .row.wrap{flex-wrap:wrap}
 .stack{display:flex;flex-direction:column;gap:10px}
+
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 @media(max-width:820px){.grid2{grid-template-columns:1fr}}
 
@@ -181,7 +182,13 @@ html[data-theme="light"] .chip:hover{border-color:rgba(0,56,108,.35)}
 .kiosk{max-width:900px;margin:0 auto}
 .kiosk-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:6px 0 14px}
 .kiosk-actions{display:flex;gap:10px}
-.kiosk-body{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.kiosk-body{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+}
 .kiosk-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px}
 .survey{min-height:260px;display:flex;flex-direction:column;gap:12px}
 .q-title{font-size:22px;font-weight:900}
@@ -252,7 +259,15 @@ html[data-theme="light"] .btn.choice.active{border-color:rgba(0,56,108,.60)}
 .builder-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
 @media(max-width:900px){.builder-grid{grid-template-columns:1fr}}
 .q-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-.q-item{border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;gap:12px;align-items:flex-start;background:linear-gradient(135deg,rgba(255,255,255,.02),rgba(255,255,255,.00))}
+.q-item{
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:12px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  background:linear-gradient(135deg,rgba(255,255,255,.02),rgba(255,255,255,.00));
+}
 .q-item:hover{border-color:rgba(45,250,217,.25)}
 html[data-theme="light"] .q-item:hover{border-color:rgba(0,56,108,.25)}
 .q-item.selected{border-color:rgba(45,250,217,.70);box-shadow:var(--focus)}
@@ -270,7 +285,12 @@ html[data-theme="light"] .q-item.selected{border-color:rgba(0,56,108,.70)}
 
 /* --- Forms-style Survey Builder (Admin) --- */
 .forms-builder{margin-top:8px}
-.q-card{border:1px solid var(--border);border-radius:18px;padding:14px;background:linear-gradient(135deg,rgba(255,255,255,.03),rgba(255,255,255,.00))}
+.q-card{
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:14px;
+  background:linear-gradient(135deg,rgba(255,255,255,.03),rgba(255,255,255,.00));
+}
 .q-card + .q-card{margin-top:12px}
 .q-card-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
 .q-reorder,.q-meta-actions{display:flex;gap:8px;align-items:center}
@@ -324,3 +344,77 @@ html[data-theme="light"] .q-item.selected{border-color:rgba(0,56,108,.70)}
 .topbar .logo{height:34px;width:auto;display:block}
 html[data-theme="light"] .logo.bw-dark{display:none}
 html:not([data-theme="light"]) .logo.bw-tech{display:none}
+
+/* ===== Mobile / Responsive (Menu + Header) ===== */
+@media (max-width: 768px){
+  .container{padding:12px;max-width:680px}
+
+  /* header stacked */
+  .topbar{
+    flex-direction:column;
+    align-items:stretch;
+    padding:10px 12px;
+    gap:10px;
+  }
+
+  .topbar .logos{
+    min-width:0;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .topbar .logos.right{
+    justify-content:center;
+    gap:10px;
+  }
+  .topbar .logos.right .top-actions{
+    width:100%;
+    justify-content:center;
+  }
+
+  .topbar .logo{height:28px}
+
+  /* menu cards should fill width */
+  .grid2{grid-template-columns:1fr}
+  .link-card{
+    transform:none !important;
+  }
+
+  /* buttons full width for touch */
+  .btn{
+    width:100%;
+    padding:14px 14px;
+    border-radius:14px;
+    font-size:16px;
+  }
+  .btn.small{
+    width:auto;
+    padding:8px 10px;
+    font-size:12px;
+  }
+
+  /* reduce title sizes slightly for mobile */
+  .q-title{font-size:20px}
+  .question h2{font-size:26px;text-align:center}
+
+  /* kiosk: make layout tighter and more app-like */
+  .kiosk{max-width:520px;margin:0 auto}
+  .kiosk-body{padding:16px}
+  .kiosk-header{flex-direction:column;align-items:stretch}
+  .kiosk-actions{width:100%;justify-content:center;flex-wrap:wrap}
+
+  /* likert buttons in mobile */
+  .btn.choice{
+    min-height:96px;
+    font-size:20px;
+  }
+  .likert .choice{min-height:120px}
+  .likert .choice .emoji{font-size:42px}
+}
+
+/* Extra-small phones */
+@media (max-width: 420px){
+  .topbar .logo{height:24px}
+  .btn.choice{font-size:18px}
+  .question h2{font-size:24px}
+}
