@@ -21,7 +21,10 @@
 
     <div class="logos right" aria-label="GPTW">
       <img class="logo" src="{{ url_for('static', filename='img/GPTW_Logo.svg') }}" alt="Great Place To Work">
-      <div class="top-actions">
+      <button class="btn ghost top-menu-toggle" id="topMenuToggle" type="button" aria-expanded="false" aria-controls="topMenu">
+        Opciones
+      </button>
+      <div class="top-actions" id="topMenu">
         <button class="btn ghost" id="themeToggle" type="button">Modo</button>
         {% if current_user.is_authenticated %}
           <a class="btn ghost" href="{{ url_for('auth.logout_to_menu') }}">Menú</a>

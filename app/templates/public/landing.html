@@ -1,9 +1,30 @@
 {% extends 'base.html' %}
 {% set title='Inicio' %}
 {% block content %}
-<div class="card">
-  <h1>Encuestas BW</h1>
-  <p>Accede al menú de encuestas activas para responder desde kiosko o link.</p>
-  <a class="btn primary" href="{{ url_for('public.menu') }}">Abrir menú</a>
+
+<div class="card narrow">
+  <div class="stack" style="gap:12px;">
+    <div>
+      <div style="font-size:22px;font-weight:950;letter-spacing:-.02em;">{{ config.APP_TITLE }}</div>
+      <div class="muted" style="margin-top:6px;">
+        Accede al menú de encuestas activas para responder desde kiosko o por enlace.
+      </div>
+    </div>
+
+    <div class="grid2" style="grid-template-columns:1fr; gap:10px;">
+      <a class="btn primary" href="{{ url_for('public.menu') }}">Abrir menú de encuestas</a>
+
+      {% if current_user.is_authenticated %}
+        <a class="btn ghost" href="{{ url_for('admin.dashboard') }}">Ir al panel de administración</a>
+      {% else %}
+        <a class="btn ghost" href="{{ url_for('auth.login') }}">Entrar como administrador</a>
+      {% endif %}
+    </div>
+
+    <div class="muted" style="font-size:12px;">
+      Sólo se mostrarán campañas activas y dentro de su ventana de tiempo.
+    </div>
+  </div>
 </div>
+
 {% endblock %}
