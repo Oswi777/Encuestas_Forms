@@ -509,11 +509,7 @@ html[data-theme="light"] .q-item.selected{border-color:rgba(0,56,108,.70)}
   .question h2{font-size:24px}
 }
 
-/* =========================
-   IMPORTANT: remove the SECOND "menu" button inside survey runtime (desktop)
-   This targets a common pattern: extra menu buttons near language switch.
-   If your runtime uses different classes, tell me the HTML snippet.
-   ========================= */
+
 
 /* Hide duplicated runtime menu button inside kiosk/survey blocks (desktop and mobile) */
 .kiosk .btn.ghost[href*="/menu"],
@@ -521,4 +517,106 @@ html[data-theme="light"] .q-item.selected{border-color:rgba(0,56,108,.70)}
 .survey .btn.ghost[href*="/menu"],
 .survey .btn[href*="/menu"]{
   display:none !important;
+}
+
+/* =========================================================
+   REPORTES: RESPONSIVE FIX (mobile + landscape)
+   Pegar al FINAL de app.css
+   ========================================================= */
+
+/* Evita que títulos largos rompan el layout */
+h1, h2, h3, .kpi .value, .kpi .label, .card, .table td, .table th {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Contenedor para charts/tables: no desbordar */
+.chart-wrap,
+.report-chart,
+.chart-container,
+.canvas-wrap,
+.table-wrap {
+  max-width: 100%;
+}
+
+/* Si usas <canvas> en reportes, hazlo responsivo */
+canvas {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Tablas: scroll horizontal en móvil */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Tablas más compactas en móvil */
+@media (max-width: 768px){
+  .table th, .table td {
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+}
+
+/* KPIs: 4 -> 2 -> 1 columnas */
+@media (max-width: 980px){
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px){
+  .kpis { grid-template-columns: 1fr; }
+  .kpi .value { font-size: 24px; }
+}
+
+/* Filtros / toolbars en reportes: que no se salgan */
+.filters-grid,
+.report-filters,
+.toolbar,
+.report-toolbar {
+  display: grid;
+  gap: 10px;
+}
+
+@media (min-width: 769px){
+  /* Si ya tienes grid2/filters-grid en escritorio, no lo tocamos */
+}
+
+@media (max-width: 768px){
+  /* En móvil: 1 columna para filtros */
+  .filters-grid { grid-template-columns: 1fr !important; }
+  .report-filters { grid-template-columns: 1fr !important; }
+  .toolbar, .report-toolbar { grid-template-columns: 1fr !important; }
+
+  /* Botones en reportes: no full width si están en fila */
+  .toolbar .btn,
+  .report-toolbar .btn,
+  .pager .btn {
+    width: auto;
+  }
+
+  /* Cards: menos padding */
+  .card { padding: 14px; }
+}
+
+/* Landscape phones: aprovecha ancho sin que se vuelva gigante */
+@media (max-width: 900px) and (orientation: landscape){
+  .container { padding: 10px; }
+  .card { padding: 12px; }
+  .kpi .value { font-size: 22px; }
+}
+
+/* Si tienes grids de 2 columnas en reportes, forzarlos a 1 en móvil */
+@media (max-width: 768px){
+  .grid2 { grid-template-columns: 1fr !important; }
+}
+
+/* Si reportes usa "table-wrap" con altura fija, reduce para móvil */
+@media (max-width: 768px){
+  .table-wrap { max-height: 320px; }
+}
+
+/* Evita que elementos con ancho fijo rompan el reporte */
+img, svg, iframe {
+  max-width: 100%;
+  height: auto;
 }
