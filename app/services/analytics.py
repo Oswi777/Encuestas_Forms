@@ -12,9 +12,7 @@ LIKERT_PRESETS = {
 
 
 def _get_label_text(label):
-    """
-    label puede venir como string o como dict {es,en}
-    """
+    """label puede venir como string o como dict {es,en}"""
     if isinstance(label, dict):
         return label.get('es') or label.get('en') or ''
     if isinstance(label, str):
@@ -30,30 +28,26 @@ def compute_campaign_analytics(campaign: Campaign) -> dict:
     responses = Response.query.filter_by(campaign_id=campaign.id).order_by(Response.submitted_at.asc()).all()
     total = len(responses)
 
-    # time series by day
     by_day = defaultdict(int)
     by_area = defaultdict(int)
     by_shift = defaultdict(int)
 
-    # question distributions
     snapshot = campaign.snapshot_json or {}
     category = (snapshot.get('category') or 'GENERAL').upper()
     schema = (snapshot.get('schema') or {})
     questions = schema.get('questions') or []
     qmeta = {q.get('id'): q for q in questions if q.get('id')}
 
+    # dist[qid][raw_value_str] = count
     dist = {qid: defaultdict(int) for qid in qmeta.keys()}
 
     followup_count = 0
-
-    # NEW: extracted comment rows + followup rows
     comments = []
     followups = []
 
-    # Identify text questions (to treat as comments)
-    text_qids = [q.get('id') for q in questions if q.get('type') == 'text' and q.get('id')]
+    # Identify text questions
+    text_qids = [q.get('id') for q in questions if q.get('type') in ('text', 'textarea', 'comment') and q.get('id')]
 
-    # Helper: try to read "area" name and shift safely
     def _area_name(r):
         try:
             return r.area.name if getattr(r, 'area', None) else None
@@ -66,26 +60,23 @@ def compute_campaign_analytics(campaign: Campaign) -> dict:
         except Exception:
             return None
 
-    # Helper: robust followup fields (support multiple model variants)
     def _followup_name(r, answers):
-        # Prefer explicit columns if exist
-        for attr in ('followup_name', 'employee_name', 'name'):
+        for attr in ('contact_name', 'followup_name', 'employee_name', 'name'):
             v = getattr(r, attr, None)
             if v:
                 return v
-        # Fallback to answers_json keys
-        for k in ('followup_name', 'employee_name', 'name'):
+        for k in ('contact_name', 'followup_name', 'employee_name', 'name'):
             v = answers.get(k)
             if v:
                 return v
         return None
 
     def _followup_empno(r, answers):
-        for attr in ('followup_employee_no', 'employee_no', 'no_empleado', 'emp_no'):
+        for attr in ('employee_no', 'followup_employee_no', 'no_empleado', 'emp_no'):
             v = getattr(r, attr, None)
             if v:
                 return v
-        for k in ('followup_employee_no', 'employee_no', 'no_empleado', 'emp_no'):
+        for k in ('employee_no', 'followup_employee_no', 'no_empleado', 'emp_no'):
             v = answers.get(k)
             if v:
                 return v
@@ -103,7 +94,6 @@ def compute_campaign_analytics(campaign: Campaign) -> dict:
         return None
 
     for r in responses:
-        # --- series by day / area / shift ---
         day = r.submitted_at.date().isoformat()
         by_day[day] += 1
 
@@ -115,10 +105,9 @@ def compute_campaign_analytics(campaign: Campaign) -> dict:
         if sh:
             by_shift[sh] += 1
 
-        # --- answers ---
         answers = r.answers_json or {}
 
-        # --- followup extraction ---
+        # followup extraction
         if getattr(r, 'wants_followup', False):
             followup_count += 1
             followups.append({
@@ -131,7 +120,7 @@ def compute_campaign_analytics(campaign: Campaign) -> dict:
                 'shift': sh,
             })
 
-        # --- dist building + comments extraction ---
+        # dist + comments extraction
         for qid, val in answers.items():
             if qid not in dist:
                 continue
@@ -144,10 +133,9 @@ def compute_campaign_analytics(campaign: Campaign) -> dict:
             else:
                 v = val
 
-            # count distribution
             dist[qid][str(v)] += 1
 
-            # if this is a text question -> extract comment row
+            # text questions -> comments
             if qid in text_qids:
                 txt = _safe_str(v)
                 if txt:
@@ -161,9 +149,10 @@ def compute_campaign_analytics(campaign: Campaign) -> dict:
                         'text': txt,
                         'area': an,
                         'shift': sh,
+                        'lang': getattr(r, 'lang', None),
                     })
 
-        # Optional: if your Response model has a dedicated comment field, also include it
+        # optional: dedicated comment fields on model
         for attr in ('comment', 'comments', 'comentario', 'notes', 'note'):
             v = getattr(r, attr, None)
             if v:
@@ -176,52 +165,92 @@ def compute_campaign_analytics(campaign: Campaign) -> dict:
                         'text': txt,
                         'area': an,
                         'shift': sh,
+                        'lang': getattr(r, 'lang', None),
                     })
                 break
 
-    # build output for charts
+    # ---- build output for charts + tables (FULL stats) ----
     question_stats = []
     for qid, d in dist.items():
-        q = qmeta.get(qid, {})
-        qtype = q.get('type')
+        q = qmeta.get(qid, {}) or {}
+        qtype = (q.get('type') or '').lower()
+
+        q_text = q.get('text') or {}
+        q_required = bool(q.get('required', False))
+
         labels = []
         values = []
+        counts_by_label = {}
+        total_n = 0
 
         if qtype == 'likert':
             scale = int(q.get('scale') or 5)
             preset = (q.get('likert_preset') or 'satisfaction').strip().lower()
             preset_labels = LIKERT_PRESETS.get(preset)
-            # Fall back to numeric labels if unknown preset or non-5 scale
+
             for i in range(1, scale + 1):
-                if preset_labels and scale == 5:
-                    labels.append(preset_labels[i - 1])
-                else:
-                    labels.append(str(i))
-                values.append(d.get(str(i), 0))
+                lab = preset_labels[i - 1] if (preset_labels and scale == 5) else str(i)
+                cnt = int(d.get(str(i), 0))
+                labels.append(lab)
+                values.append(cnt)
+                counts_by_label[lab] = cnt
+                total_n += cnt
 
         elif qtype == 'single':
             opts = q.get('options') or []
+            # preserve option order defined in schema
             for opt in opts:
-                v = str(opt.get('value'))
-                lab = _get_label_text(opt.get('label'))
-                labels.append(lab or v)
-                values.append(d.get(v, 0))
+                raw_val = str(opt.get('value'))
+                lab = _get_label_text(opt.get('label')) or raw_val
+                cnt = int(d.get(raw_val, 0))
+                labels.append(lab)
+                values.append(cnt)
+                counts_by_label[lab] = cnt
+                total_n += cnt
+
+            # if answers contain unexpected options, include them as "Otros"
+            known_raw = {str(o.get('value')) for o in opts}
+            extra_total = 0
+            for raw_val, cnt in d.items():
+                if raw_val not in known_raw:
+                    extra_total += int(cnt)
+            if extra_total:
+                labels.append("Otros")
+                values.append(extra_total)
+                counts_by_label["Otros"] = extra_total
+                total_n += extra_total
 
         else:
-            # for text, only count filled
-            labels = ['filled']
-            values = [sum(d.values())]
+            # text/other -> count filled answers (d has each different text as key, we just sum)
+            total_n = int(sum(d.values()))
+            labels = ['Respuestas con texto']
+            values = [total_n]
+            counts_by_label = {'Respuestas con texto': total_n}
+
+        # percentages
+        perc_by_label = {}
+        if total_n > 0:
+            for lab, cnt in counts_by_label.items():
+                perc_by_label[lab] = round((cnt / total_n) * 100.0, 1)
+        else:
+            for lab in labels:
+                perc_by_label[lab] = 0.0
 
         question_stats.append({
             'id': qid,
             'type': qtype,
+            'required': q_required,
             'likert_preset': q.get('likert_preset') or None,
-            'text': q.get('text') or {},
-            'labels': labels,
-            'values': values,
+            'scale': int(q.get('scale') or 0) if qtype == 'likert' else None,
+            'text': q_text,
+            'labels': labels,          # in display order
+            'values': values,          # counts aligned with labels
+            'total_n': total_n,
+            'counts': counts_by_label, # label -> count
+            'percentages': perc_by_label, # label -> %
         })
 
-    # ---- Category-specific helpers (best-effort, works for baseline templates) ----
+    # ---- Category-specific helpers ----
     def _find_first_likert():
         for q in questions:
             if q.get('type') == 'likert' and q.get('id'):
@@ -251,48 +280,15 @@ def compute_campaign_analytics(campaign: Campaign) -> dict:
     main = _find_first_likert()
     if main:
         qid = main.get('id')
+        scale = int(main.get('scale') or 5)
         special['main_likert'] = {
             'qid': qid,
             'likert_preset': main.get('likert_preset') or 'satisfaction',
-            'scale': int(main.get('scale') or 5),
+            'scale': scale,
             'avg': _avg_from_dist(qid),
-            'dist': {str(i): int(dist.get(qid, {}).get(str(i), 0)) for i in range(1, int(main.get('scale') or 5) + 1)}
+            'dist': {str(i): int(dist.get(qid, {}).get(str(i), 0)) for i in range(1, scale + 1)}
         }
 
-        # branch questions: look for single questions with show_if referencing main qid
-        pos_qid = None
-        neg_qid = None
-        for q in questions:
-            if q.get('type') != 'single' or not q.get('id'):
-                continue
-            conds = q.get('show_if') or []
-            if not isinstance(conds, list):
-                conds = [conds]
-            for cnd in conds:
-                if cnd.get('question') != qid:
-                    continue
-                op = cnd.get('op') or 'eq'
-                val = cnd.get('value')
-                if op == 'eq' and str(val) in ('5', '4'):
-                    pos_qid = q.get('id')
-                if op == 'in':
-                    # accept '1,2' or array
-                    if isinstance(val, str) and ('1' in val or '2' in val):
-                        neg_qid = q.get('id')
-                    if isinstance(val, list) and any(str(x) in ('1', '2') for x in val):
-                        neg_qid = q.get('id')
-
-        def _top(qid_):
-            if not qid_:
-                return None
-            d = dist.get(qid_) or {}
-            items = sorted([(k, int(v)) for k, v in d.items()], key=lambda x: (-x[1], x[0]))
-            return {'qid': qid_, 'top': items[:10]}
-
-        special['reasons_positive'] = _top(pos_qid)
-        special['reasons_negative'] = _top(neg_qid)
-
-    # Sort extracted lists (latest first to match report UX)
     comments_sorted = sorted(comments, key=lambda x: x.get('submitted_at') or datetime.min, reverse=True)
     followups_sorted = sorted(followups, key=lambda x: x.get('submitted_at') or datetime.min, reverse=True)
 
@@ -313,10 +309,7 @@ def compute_campaign_analytics(campaign: Campaign) -> dict:
         'by_shift': sorted([[k, v] for k, v in by_shift.items()], key=lambda x: (-x[1], x[0])),
         'questions': question_stats,
         'special': special,
-
-        # NEW: for PDF annex and reports tables
         'comments': comments_sorted,
         'followups': followups_sorted,
-
         'generated_at': datetime.utcnow().isoformat(timespec='seconds') + 'Z'
     }
