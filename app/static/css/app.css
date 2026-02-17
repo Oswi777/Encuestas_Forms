@@ -620,3 +620,56 @@ img, svg, iframe {
   max-width: 100%;
   height: auto;
 }
+
+
+/* ===== Fix: Desktop “pantalla cortada” + footer al fondo ===== */
+html, body { height: 100%; }
+
+body{
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* tu <main class="container"> debe crecer para ocupar el alto */
+main.container{
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+/* footer siempre al final */
+.footer{
+  margin-top: auto;
+  flex: 0 0 auto;
+  background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  backdrop-filter: blur(8px);
+}
+
+/* ===== Mejoras desktop (menos “vacío”, mejor proporción) ===== */
+@media (min-width: 1024px){
+  .container{
+    max-width: 1200px;     /* más ancho en PC */
+    padding: 20px 22px;
+  }
+
+  .kiosk{
+    max-width: 1100px;     /* el survey se ve más “pro” en desktop */
+  }
+
+  .kiosk-body{
+    padding: 22px 22px;
+  }
+
+  .question h2{
+    font-size: 34px;
+  }
+
+  /* Likert un poco más consistente en PC */
+  .likert{
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .likert .choice{
+    min-height: 150px;
+  }
+}
